@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Lms.Data.Data;
 using Lms.Core.Entities;
+using Lms.Core.Repositories;
+using AutoMapper;
+using Lms.Core.Dto;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Lms.Api.Controllers
 {
@@ -14,12 +18,42 @@ namespace Lms.Api.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
+        private readonly IUoW uow;
+
+        // Create a field to store the mapper object
+        private readonly IMapper _mapper;
+
         private readonly LmsApiContext _context;
 
-        public GamesController(LmsApiContext context)
+        public GamesController(LmsApiContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
+
         }
+        [HttpPatch("{gameId}")]
+        public async Task<ActionResult<GameDto>> PatchGame(int gameId,
+            /*[FromBody]*/ JsonPatchDocument<GameDto> patchDocument)
+        {
+            if (patchDocument != null)
+            {
+                var gameDto = CreateGameDto();
+
+                patchDocument.ApplyTo(gameDto, ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                return new ObjectResult(customer);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+
 
         // GET: api/Games
         [HttpGet]

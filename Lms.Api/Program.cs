@@ -2,6 +2,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Lms.Data.Data;
 using Lms.Api.Extensions;
+using Lms.Core.Repositories;
+using Lms.Data.Repositories;
 
 namespace Lms.Api
 {
@@ -14,6 +16,10 @@ namespace Lms.Api
                 options.UseSqlServer(builder.Configuration.GetConnectionString("LmsApiContext") ?? throw new InvalidOperationException("Connection string 'LmsApiContext' not found.")));
 
             // Add services to the container.
+            builder.Services.AddScoped<IUoW,UoW>();
+
+            builder.Services.AddAutoMapper(typeof(LmsMappings));
+
 
             builder.Services.AddControllers(opt => opt.ReturnHttpNotAcceptable = true)
                 .AddNewtonsoftJson()

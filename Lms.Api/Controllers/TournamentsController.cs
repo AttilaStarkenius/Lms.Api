@@ -7,18 +7,54 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Lms.Data.Data;
 using Lms.Core.Entities;
+using Lms.Core.Repositories;
+using AutoMapper;
+using Lms.Core.Dto;
+using Azure;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Lms.Api.Controllers
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class TournamentsController : ControllerBase
     {
+        private readonly IUoW uow;
+        
+        // Create a field to store the mapper object
+        private readonly IMapper _mapper;
+
         private readonly LmsApiContext _context;
 
-        public TournamentsController(LmsApiContext context)
+        public TournamentsController(LmsApiContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
+
+        }
+
+        [HttpPatch("{tournamentId}")]
+        public async Task<ActionResult<TournamentDto>> PatchTournament(int tournamentId,
+            /*[FromBody]*/JsonPatchDocument<TournamentDto> patchDocument)
+        {
+            if (patchDocument != null)
+            {
+                var tournamentDto = CreateTournamentDto();
+
+                patchDocument.ApplyTo(tournamentDto, ModelState);
+
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                return new ObjectResult(customer);
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
         }
 
         // GET: api/Tournaments
@@ -29,7 +65,10 @@ namespace Lms.Api.Controllers
           {
               return NotFound();
           }
-            return await _context.Tournament.ToListAsync();
+            Tournament tournament = new Tournament();
+            var tournamentDTO = _mapper.Map<TournamentDto>(tournament);
+                return Ok(tournamentDTO);
+            //return await _context.Tournament.ToListAsync();
         }
 
         // GET: api/Tournaments/5
@@ -40,14 +79,17 @@ namespace Lms.Api.Controllers
           {
               return NotFound();
           }
-            var tournament = await _context.Tournament.FindAsync(id);
+            Tournament tournament = new Tournament();
+            var tournamentDTO = _mapper.Map<TournamentDto>(tournament);
+            return Ok(tournamentDTO);
+            //var tournament = await _context.Tournament.FindAsync(id);
 
-            if (tournament == null)
-            {
-                return NotFound();
-            }
+            //if (tournament == null)
+            //{
+            //    return NotFound();
+            //}
 
-            return tournament;
+            //return tournament;
         }
 
         // PUT: api/Tournaments/5
